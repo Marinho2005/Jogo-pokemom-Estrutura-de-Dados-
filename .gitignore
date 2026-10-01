@@ -1,6 +1,8 @@
 # Binários e executáveis
 jogoAED
 jogoAED.exe
+jogoAED_gui
+jogoAED_gui.exe
 *.exe
 *.o
 *.out
