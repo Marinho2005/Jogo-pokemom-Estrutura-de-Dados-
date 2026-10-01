@@ -2,10 +2,12 @@
 #define GUI_H
 
 #include "gui_draw.h"
+#include "gui_audio.h"
 #include "pokemon.h"
 #include "jogador.h"
 #include "loja.h"
 #include "ranking.h"
+#include "savegame.h"
 
 typedef enum {
     SCENE_TITLE,
@@ -15,6 +17,7 @@ typedef enum {
     SCENE_BATTLE,
     SCENE_SHOP,
     SCENE_RANKING,
+    SCENE_SETTINGS,
     SCENE_GAME_OVER
 } GameScene;
 
@@ -33,9 +36,14 @@ typedef enum {
     SHOP_MODE_REVIVE_SELECT
 } ShopMode;
 
-typedef struct {
+struct GuiApp {
     UIContext ui;
     GameScene current_scene;
+    GameScene previous_scene;
+
+    /* Controle de Save e Notificações */
+    char title_notification[80];
+    int show_confirm_overwrite;
 
     /* Dados do Jogo */
     Jogador player;
@@ -70,7 +78,7 @@ typedef struct {
     int capture_and_exit;
 
     int running;
-} GuiApp;
+};
 
 int gui_app_init(GuiApp *app);
 void gui_app_set_scene(GuiApp *app, GameScene scene);

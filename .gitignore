@@ -9,9 +9,13 @@ jogoAED_gui.exe
 
 # Arquivos de dados de tempo de execução
 ranking.txt
+savegame.dat
 
 # Arquivos do sistema e editores
 .DS_Store
 *.swp
 *~
 .vscode/
+.wine/
+windows-libs/
+SDL2.dll

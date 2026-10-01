@@ -50,7 +50,7 @@ int ui_init(UIContext *ctx, int width, int height, const char *title) {
         title,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         width, height,
-        SDL_WINDOW_SHOWN
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
     if (!ctx->window) {
         fprintf(stderr, "Erro ao criar janela: %s\n", SDL_GetError());
@@ -70,6 +70,8 @@ int ui_init(UIContext *ctx, int width, int height, const char *title) {
     }
 
     SDL_SetRenderDrawBlendMode(ctx->renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderSetLogicalSize(ctx->renderer, width, height);
+    SDL_SetWindowMinimumSize(ctx->window, 480, 320);
 
     /* Cria textura de fonte a partir dos dados embutidos (128 x 256 pixels) */
     SDL_Surface *font_surf = SDL_CreateRGBSurfaceWithFormat(0, 128, 256, 32, SDL_PIXELFORMAT_RGBA32);
@@ -135,6 +137,21 @@ void ui_cleanup(UIContext *ctx) {
         ctx->window = NULL;
     }
     SDL_Quit();
+}
+
+void ui_toggle_fullscreen(UIContext *ctx) {
+    if (!ctx || !ctx->window) return;
+    uint32_t flags = SDL_GetWindowFlags(ctx->window);
+    if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+        SDL_SetWindowFullscreen(ctx->window, 0);
+    } else {
+        SDL_SetWindowFullscreen(ctx->window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    }
+}
+
+int ui_is_fullscreen(UIContext *ctx) {
+    if (!ctx || !ctx->window) return 0;
+    return (SDL_GetWindowFlags(ctx->window) & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
 }
 
 void ui_begin_frame(UIContext *ctx) {

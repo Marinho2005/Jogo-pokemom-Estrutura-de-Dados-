@@ -1,7 +1,17 @@
 #ifndef GUI_DRAW_H
 #define GUI_DRAW_H
 
-#include <SDL2/SDL.h>
+#if defined(__has_include)
+  #if __has_include(<SDL2/SDL.h>)
+    #include <SDL2/SDL.h>
+  #elif __has_include(<SDL.h>)
+    #include <SDL.h>
+  #else
+    #include <SDL2/SDL.h>
+  #endif
+#else
+  #include <SDL2/SDL.h>
+#endif
 #include <stdint.h>
 
 #define WINDOW_WIDTH 960
@@ -41,6 +51,8 @@ typedef struct {
 /* Inicialização e finalização */
 int ui_init(UIContext *ctx, int width, int height, const char *title);
 void ui_cleanup(UIContext *ctx);
+void ui_toggle_fullscreen(UIContext *ctx);
+int ui_is_fullscreen(UIContext *ctx);
 
 /* Controle de frame */
 void ui_begin_frame(UIContext *ctx);

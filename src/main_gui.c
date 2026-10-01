@@ -5,7 +5,7 @@
 int main(int argc, char *argv[]) {
     GuiApp app;
     if (!gui_app_init(&app)) {
-        fprintf(stderr, "Falha ao inicializar aplicacao grafica Pokemon.\n");
+        fprintf(stderr, "Falha ao inicializar aplicacao grafica PokeRogue.\n");
         return 1;
     }
 
@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
             else if (strcmp(sc, "battle") == 0) gui_app_set_scene(&app, SCENE_BATTLE);
             else if (strcmp(sc, "shop") == 0) gui_app_set_scene(&app, SCENE_SHOP);
             else if (strcmp(sc, "ranking") == 0) gui_app_set_scene(&app, SCENE_RANKING);
+            else if (strcmp(sc, "settings") == 0) gui_app_set_scene(&app, SCENE_SETTINGS);
             else if (strcmp(sc, "gameover") == 0) gui_app_set_scene(&app, SCENE_GAME_OVER);
         } else if (strcmp(argv[i], "--screenshot") == 0 && i + 1 < argc) {
             strncpy(app.screenshot_path, argv[++i], sizeof(app.screenshot_path) - 1);

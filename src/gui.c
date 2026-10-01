@@ -153,14 +153,17 @@ static void start_battle(GuiApp *app) {
 int gui_app_init(GuiApp *app) {
     memset(app, 0, sizeof(GuiApp));
 
-    if (!ui_init(&app->ui, WINDOW_WIDTH, WINDOW_HEIGHT, "Pokemon - Estrutura de Dados (AED)")) {
+    if (!ui_init(&app->ui, WINDOW_WIDTH, WINDOW_HEIGHT, "PokeRogue - Estrutura de Dados (AED)")) {
         return 0;
     }
+
+    audio_init();
 
     srand((unsigned int)time(NULL));
     init_game_pokemons(app);
 
     app->current_scene = SCENE_TITLE;
+    app->previous_scene = SCENE_TITLE;
     strncpy(app->input_name, "Ash", sizeof(app->input_name) - 1);
     app->running = 1;
 
@@ -170,6 +173,7 @@ int gui_app_init(GuiApp *app) {
 
 void gui_app_cleanup(GuiApp *app) {
     SDL_StopTextInput();
+    audio_cleanup();
     destroi_listase(&app->player.pokemonslista);
     destroi_listase(&app->mortos);
     destroiListaLoja(&app->loja);
@@ -185,21 +189,96 @@ static void render_scene_title(GuiApp *app) {
     ui_clear(&app->ui, C_BG_DARK);
 
     /* Pokebola decorativa gigante */
-    ui_draw_pokeball(&app->ui, WINDOW_WIDTH / 2, 170, 70);
+    ui_draw_pokeball(&app->ui, WINDOW_WIDTH / 2, 135, 55);
 
     /* Banner de Título */
-    ui_draw_text_centered(&app->ui, "POKEMON", WINDOW_WIDTH / 2, 260, 4, C_YELLOW);
-    ui_draw_text_centered(&app->ui, "ESTRUTURA DE DADOS (AED)", WINDOW_WIDTH / 2, 335, 2, C_WHITE);
-    ui_draw_text_centered(&app->ui, "Fila circular * Pilha dinamica * Listas encadeadas", WINDOW_WIDTH / 2, 380, 1, C_GRAY);
+    ui_draw_text_centered(&app->ui, "POKEROGUE", WINDOW_WIDTH / 2, 205, 4, C_YELLOW);
+    ui_draw_text_centered(&app->ui, "ESTRUTURA DE DADOS (AED)", WINDOW_WIDTH / 2, 275, 2, C_WHITE);
+    ui_draw_text_centered(&app->ui, "Fila circular * Pilha dinamica * Listas encadeadas", WINDOW_WIDTH / 2, 315, 1, C_GRAY);
 
-    /* Botão de Iniciar */
-    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 140, 460, 280, 50, "INICIAR AVENTURA", 2,
-                       C_BTN_NORMAL, C_BTN_HOVER, C_WHITE) ||
-        (app->ui.key_pressed == SDLK_SPACE || app->ui.key_pressed == SDLK_RETURN)) {
-        app->current_scene = SCENE_NAME_INPUT;
+    /* Notificação de jogo salvo */
+    if (app->title_notification[0] != '\0') {
+        ui_draw_text_centered(&app->ui, app->title_notification, WINDOW_WIDTH / 2, 345, 1, C_GREEN);
     }
 
-    ui_draw_text_centered(&app->ui, "Pressione ESPACO ou clique para comecar", WINDOW_WIDTH / 2, 530, 1, C_GRAY);
+    int has_save = savegame_exists();
+
+    if (has_save) {
+        /* Opção 1: Continuar Aventura */
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 375, 300, 48, "CONTINUAR AVENTURA", 2,
+                           C_GREEN, C_BTN_HOVER, C_WHITE) ||
+            (app->ui.key_pressed == SDLK_SPACE || app->ui.key_pressed == SDLK_RETURN)) {
+            if (savegame_load(app)) {
+                audio_play(SOUND_SELECT);
+                app->title_notification[0] = '\0';
+                app->current_scene = SCENE_LOBBY;
+            }
+        }
+
+        /* Opção 2: Nova Aventura */
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 432, 300, 44, "NOVA AVENTURA", 2,
+                           C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
+            audio_play(SOUND_SELECT);
+            app->show_confirm_overwrite = 1;
+        }
+
+        /* Opção 3: Configurações */
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 485, 300, 42, "CONFIGURACOES", 2,
+                           C_DARK_GRAY, C_BTN_HOVER, C_WHITE)) {
+            audio_play(SOUND_SELECT);
+            app->previous_scene = SCENE_TITLE;
+            app->current_scene = SCENE_SETTINGS;
+        }
+    } else {
+        /* Sem save anterior: Iniciar Aventura */
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 140, 400, 280, 50, "INICIAR AVENTURA", 2,
+                           C_GREEN, C_BTN_HOVER, C_WHITE) ||
+            (app->ui.key_pressed == SDLK_SPACE || app->ui.key_pressed == SDLK_RETURN)) {
+            audio_play(SOUND_SELECT);
+            app->title_notification[0] = '\0';
+            app->current_scene = SCENE_NAME_INPUT;
+        }
+
+        /* Configurações */
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 140, 465, 280, 45, "CONFIGURACOES", 2,
+                           C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
+            audio_play(SOUND_SELECT);
+            app->previous_scene = SCENE_TITLE;
+            app->current_scene = SCENE_SETTINGS;
+        }
+    }
+
+    ui_draw_text_centered(&app->ui, "[F11] Tela Cheia  |  Arraste as bordas para redimensionar", WINDOW_WIDTH / 2, 560, 1, C_DARK_GRAY);
+
+    /* Modal de confirmação caso tente sobrescrever um save existente */
+    if (app->show_confirm_overwrite) {
+        SDL_Rect fscreen = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+        SDL_SetRenderDrawColor(app->ui.renderer, 0, 0, 0, 200);
+        SDL_RenderFillRect(app->ui.renderer, &fscreen);
+
+        ui_draw_panel(&app->ui, WINDOW_WIDTH / 2 - 260, 180, 520, 280, C_PANEL_BG, C_RED);
+        ui_draw_text_centered(&app->ui, "AVISO DE PROGRESSO SALVO", WINDOW_WIDTH / 2, 205, 2, C_RED);
+
+        ui_draw_text_centered(&app->ui, "Ja existe uma aventura salva anteriormente!", WINDOW_WIDTH / 2, 250, 1, C_BLACK);
+        ui_draw_text_centered(&app->ui, "Iniciar uma nova aventura ira APAGAR seu save atual.", WINDOW_WIDTH / 2, 275, 1, C_DARK_GRAY);
+        ui_draw_text_centered(&app->ui, "Tem certeza que deseja apagar e comecar do zero?", WINDOW_WIDTH / 2, 305, 1, C_RED);
+
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 220, 360, 210, 46, "SIM, APAGAR E INICIAR", 1,
+                           C_RED, C_BTN_HOVER, C_WHITE)) {
+            audio_play(SOUND_SELECT);
+            savegame_delete();
+            app->show_confirm_overwrite = 0;
+            app->title_notification[0] = '\0';
+            app->current_scene = SCENE_NAME_INPUT;
+        }
+
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 + 10, 360, 210, 46, "CANCELAR", 1,
+                           C_GRAY, C_BTN_HOVER, C_WHITE) ||
+            app->ui.key_pressed == SDLK_ESCAPE) {
+            audio_play(SOUND_SELECT);
+            app->show_confirm_overwrite = 0;
+        }
+    }
 }
 
 static void render_scene_name_input(GuiApp *app) {
@@ -355,18 +434,24 @@ static void render_scene_lobby(GuiApp *app) {
     ui_draw_text(&app->ui, trainer_text, 35, 34, 2, C_BLACK);
 
     /* Moedas, Pokebolas e Pontos */
-    ui_draw_pokeball(&app->ui, 500, 45, 12);
+    ui_draw_pokeball(&app->ui, 315, 45, 11);
     char pb_text[32];
     snprintf(pb_text, sizeof(pb_text), "Pokebolas: %d", app->player.pokebolas);
-    ui_draw_text(&app->ui, pb_text, 520, 36, 1, C_BLACK);
+    ui_draw_text(&app->ui, pb_text, 335, 36, 1, C_BLACK);
 
     char coins_text[32];
     snprintf(coins_text, sizeof(coins_text), "Moedas: %d", app->player.moedas);
-    ui_draw_text(&app->ui, coins_text, 680, 36, 1, C_GOLD);
+    ui_draw_text(&app->ui, coins_text, 475, 36, 1, C_GOLD);
 
     char pts_text[32];
     snprintf(pts_text, sizeof(pts_text), "Pontos: %d", app->pontuacao);
-    ui_draw_text(&app->ui, pts_text, 820, 36, 1, C_BLUE);
+    ui_draw_text(&app->ui, pts_text, 620, 36, 1, C_BLUE);
+
+    /* Botao de Tela Cheia */
+    const char *fs_text = ui_is_fullscreen(&app->ui) ? "JANELA [F11]" : "TELA CHEIA [F11]";
+    if (ui_draw_button(&app->ui, 755, 24, 165, 42, fs_text, 1, C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
+        ui_toggle_fullscreen(&app->ui);
+    }
 
     /* Painel Esquerdo: Pokémons do Time Ativo */
     ui_draw_panel(&app->ui, 20, 90, 580, 440, C_PANEL_BG, C_PANEL_BORDER);
@@ -434,25 +519,38 @@ static void render_scene_lobby(GuiApp *app) {
     }
 
     /* Barra Inferior de Ações */
-    if (ui_draw_button(&app->ui, 20, 550, 215, 60, "BATALHAR", 2, C_RED, C_BTN_HOVER, C_WHITE)) {
+    if (ui_draw_button(&app->ui, 20, 550, 172, 60, "BATALHAR", 2, C_RED, C_BTN_HOVER, C_WHITE)) {
+        audio_play(SOUND_SELECT);
         start_battle(app);
     }
 
-    if (ui_draw_button(&app->ui, 255, 550, 215, 60, "LOJA", 2, C_BLUE, C_BTN_HOVER, C_WHITE)) {
+    if (ui_draw_button(&app->ui, 202, 550, 172, 60, "LOJA", 2, C_BLUE, C_BTN_HOVER, C_WHITE)) {
+        audio_play(SOUND_SELECT);
         app->shop_mode = SHOP_MODE_NORMAL;
         app->shop_status[0] = '\0';
         app->current_scene = SCENE_SHOP;
     }
 
-    if (ui_draw_button(&app->ui, 490, 550, 215, 60, "RANKING", 2, C_GOLD, C_BTN_HOVER, C_WHITE)) {
+    if (ui_draw_button(&app->ui, 384, 550, 172, 60, "RANKING", 2, C_GOLD, C_BTN_HOVER, C_WHITE)) {
+        audio_play(SOUND_SELECT);
         app->current_scene = SCENE_RANKING;
     }
 
-    if (ui_draw_button(&app->ui, 725, 550, 215, 60, "SALVAR E SAIR", 2, C_DARK_GRAY, C_BTN_HOVER, C_WHITE)) {
+    if (ui_draw_button(&app->ui, 566, 550, 172, 60, "CONFIGS", 2, C_GREEN, C_BTN_HOVER, C_WHITE)) {
+        audio_play(SOUND_SELECT);
+        app->previous_scene = SCENE_LOBBY;
+        app->current_scene = SCENE_SETTINGS;
+    }
+
+    if (ui_draw_button(&app->ui, 748, 550, 192, 60, "SALVAR E SAIR", 2, C_DARK_GRAY, C_BTN_HOVER, C_WHITE)) {
+        audio_play(SOUND_BUY);
+        savegame_save(app);
         if (app->player.pontuacao > 0) {
             salvarRanking(app->player.nome, app->player.pontuacao);
         }
-        app->running = 0;
+        strncpy(app->title_notification, "Progresso salvo com sucesso!", sizeof(app->title_notification) - 1);
+        app->title_notification[sizeof(app->title_notification) - 1] = '\0';
+        app->current_scene = SCENE_TITLE;
     }
 }
 
@@ -828,7 +926,99 @@ static void render_scene_ranking(GuiApp *app) {
 
     if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 120, 510, 240, 45, "VOLTAR AO LOBBY", 2,
                        C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
+        audio_play(SOUND_SELECT);
         app->current_scene = SCENE_LOBBY;
+    }
+}
+
+static void render_scene_settings(GuiApp *app) {
+    ui_clear(&app->ui, C_BG_DARK);
+
+    /* Painel Principal de Configurações */
+    ui_draw_panel(&app->ui, 120, 25, WINDOW_WIDTH - 240, 590, C_PANEL_BG, C_PANEL_BORDER);
+    ui_draw_text_centered(&app->ui, "CONFIGURACOES", WINDOW_WIDTH / 2, 45, 3, C_BLUE);
+
+    /* ---------------- SECAO 1: TELA E EXIBICAO ---------------- */
+    ui_draw_text(&app->ui, "1. MODO DE EXIBICAO", 150, 105, 2, C_BLACK);
+
+    int is_fs = ui_is_fullscreen(&app->ui);
+    char fs_status[64];
+    snprintf(fs_status, sizeof(fs_status), "Modo Atual: %s", is_fs ? "Tela Cheia (Fullscreen)" : "Modo Janela (Windowed)");
+    ui_draw_text(&app->ui, fs_status, 150, 140, 1, is_fs ? C_GREEN : C_BLUE);
+
+    /* Botão alternar Tela Cheia / Janela */
+    const char *toggle_lbl = is_fs ? "SAIR DA TELA CHEIA (F11)" : "ATIVAR TELA CHEIA (F11)";
+    if (ui_draw_button(&app->ui, 520, 128, 280, 44, toggle_lbl, 1, C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
+        ui_toggle_fullscreen(&app->ui);
+        audio_play(SOUND_SELECT);
+    }
+
+    ui_draw_text(&app->ui, "Dica: Em modo janela, voce pode redimensionar livremente arrastando as bordas.", 150, 185, 1, C_DARK_GRAY);
+    ui_draw_text(&app->ui, "Voce tambem pode pressionar F11 ou Alt+Enter a qualquer momento.", 150, 205, 1, C_GRAY);
+
+    /* Linha divisória */
+    ui_draw_rect(&app->ui, 150, 245, WINDOW_WIDTH - 300, 2, C_PANEL_BORDER);
+
+    /* ---------------- SECAO 2: VOLUME DO JOGO ---------------- */
+    ui_draw_text(&app->ui, "2. VOLUME DO JOGO", 150, 265, 2, C_BLACK);
+
+    int cur_vol = audio_get_volume();
+    int muted = audio_is_muted();
+
+    /* Barra Visual de Volume */
+    ui_draw_rect(&app->ui, 150, 305, 380, 32, C_DARK_GRAY);
+    if (!muted && cur_vol > 0) {
+        int fill = (int)((float)cur_vol / 100.0f * 376.0f);
+        ui_draw_rect(&app->ui, 152, 307, fill, 28, C_GREEN);
+    }
+    ui_draw_rect_outline(&app->ui, 150, 305, 380, 32, C_BLACK, 1);
+
+    char vol_txt[32];
+    if (muted) {
+        snprintf(vol_txt, sizeof(vol_txt), "MUDO (0%%)");
+    } else {
+        snprintf(vol_txt, sizeof(vol_txt), "Volume: %d%%", cur_vol);
+    }
+    ui_draw_text(&app->ui, vol_txt, 550, 312, 1, muted ? C_RED : C_BLACK);
+
+    /* Botões -10%, +10% e Mudo */
+    if (ui_draw_button(&app->ui, 150, 350, 115, 42, "[-] -10%", 1, C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
+        audio_set_volume(cur_vol - 10);
+        audio_play(SOUND_SELECT);
+    }
+    if (ui_draw_button(&app->ui, 275, 350, 115, 42, "[+] +10%", 1, C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
+        audio_set_volume(cur_vol + 10);
+        audio_play(SOUND_SELECT);
+    }
+    const char *mute_lbl = muted ? "DESMUTAR" : "MUDO";
+    if (ui_draw_button(&app->ui, 400, 350, 130, 42, mute_lbl, 1, muted ? C_GREEN : C_RED, C_BTN_HOVER, C_WHITE)) {
+        audio_toggle_mute();
+        audio_play(SOUND_SELECT);
+    }
+
+    /* Presets rápidos de volume */
+    ui_draw_text(&app->ui, "Ajustes rapidos:", 550, 358, 1, C_DARK_GRAY);
+    int presets[] = {0, 25, 50, 75, 100};
+    for (int p = 0; p < 5; p++) {
+        char plbl[16];
+        snprintf(plbl, sizeof(plbl), "%d%%", presets[p]);
+        SDL_Color pbg = (!muted && cur_vol == presets[p]) ? C_GREEN : C_PANEL_BG;
+        SDL_Color ptxt = (!muted && cur_vol == presets[p]) ? C_WHITE : C_BLACK;
+        if (ui_draw_button(&app->ui, 150 + p * 80, 405, 70, 34, plbl, 1, pbg, C_BTN_HOVER, ptxt)) {
+            audio_set_volume(presets[p]);
+            audio_play(SOUND_SELECT);
+        }
+    }
+
+    /* Linha divisória */
+    ui_draw_rect(&app->ui, 150, 465, WINDOW_WIDTH - 300, 2, C_PANEL_BORDER);
+
+    /* ---------------- BOTAO VOLTAR ---------------- */
+    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 140, 495, 280, 50, "SALVAR E VOLTAR", 2,
+                       C_GREEN, C_BTN_HOVER, C_WHITE) ||
+        (app->ui.key_pressed == SDLK_ESCAPE || app->ui.key_pressed == SDLK_RETURN)) {
+        audio_play(SOUND_SELECT);
+        app->current_scene = (app->previous_scene != SCENE_SETTINGS) ? app->previous_scene : SCENE_LOBBY;
     }
 }
 
@@ -889,15 +1079,23 @@ void gui_app_run(GuiApp *app) {
                 app->ui.mouse_y = e.motion.y;
             } else if (e.type == SDL_MOUSEBUTTONDOWN) {
                 if (e.button.button == SDL_BUTTON_LEFT) {
+                    app->ui.mouse_x = e.button.x;
+                    app->ui.mouse_y = e.button.y;
                     app->ui.mouse_down = 1;
                 }
             } else if (e.type == SDL_MOUSEBUTTONUP) {
                 if (e.button.button == SDL_BUTTON_LEFT) {
+                    app->ui.mouse_x = e.button.x;
+                    app->ui.mouse_y = e.button.y;
                     app->ui.mouse_down = 0;
                     app->ui.mouse_clicked = 1;
                 }
             } else if (e.type == SDL_KEYDOWN) {
                 app->ui.key_pressed = e.key.keysym.sym;
+                if (e.key.keysym.sym == SDLK_F11 ||
+                    ((e.key.keysym.mod & KMOD_ALT) && (e.key.keysym.sym == SDLK_RETURN || e.key.keysym.sym == SDLK_KP_ENTER))) {
+                    ui_toggle_fullscreen(&app->ui);
+                }
             } else if (e.type == SDL_TEXTINPUT) {
                 strncpy(app->ui.text_input, e.text.text, sizeof(app->ui.text_input) - 1);
                 app->ui.text_input[sizeof(app->ui.text_input) - 1] = '\0';
@@ -926,6 +1124,9 @@ void gui_app_run(GuiApp *app) {
             case SCENE_RANKING:
                 render_scene_ranking(app);
                 break;
+            case SCENE_SETTINGS:
+                render_scene_settings(app);
+                break;
             case SCENE_GAME_OVER:
                 render_scene_game_over(app);
                 break;
@@ -944,7 +1145,7 @@ void gui_app_run(GuiApp *app) {
 }
 
 void gui_app_set_scene(GuiApp *app, GameScene scene) {
-    if (scene == SCENE_LOBBY || scene == SCENE_BATTLE || scene == SCENE_SHOP || scene == SCENE_RANKING) {
+    if (scene == SCENE_LOBBY || scene == SCENE_BATTLE || scene == SCENE_SHOP || scene == SCENE_RANKING || scene == SCENE_SETTINGS) {
         app->selected_team[0] = 0; // Pikachu
         app->selected_team[1] = 1; // Charmander
         app->selected_team[2] = 2; // Bulbasaur
