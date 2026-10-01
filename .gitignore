@@ -1,0 +1,15 @@
+# Binários e executáveis
+jogoAED
+jogoAED.exe
+*.exe
+*.o
+*.out
+
+# Arquivos de dados de tempo de execução
+ranking.txt
+
+# Arquivos do sistema e editores
+.DS_Store
+*.swp
+*~
+.vscode/
