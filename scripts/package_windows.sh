@@ -13,7 +13,7 @@ if ! command -v x86_64-w64-mingw32-gcc &> /dev/null; then
 fi
 
 # Garante dependências do Windows (SDL2.dll)
-if [ ! -f "SDL2.dll" ] || [ ! -d "windows-libs" ]; then
+if [ ! -f "windows-libs/SDL2.dll" ] || [ ! -d "windows-libs" ]; then
     bash scripts/setup_windows_build.sh
 fi
 
@@ -30,7 +30,7 @@ x86_64-w64-mingw32-gcc -O2 -Wall -Wextra -Iinclude -Iwindows-libs/include/SDL2 \
     src/gui_draw.c src/gui_audio.c src/savegame.c src/gui.c src/main_gui.c \
     -Lwindows-libs/lib -lmingw32 -lSDL2main -lSDL2 -mwindows -o "${WIN_PKG_DIR}/jogoAED_gui.exe"
 
-cp SDL2.dll "$WIN_PKG_DIR/"
+cp windows-libs/SDL2.dll "$WIN_PKG_DIR/"
 cp ranking.txt "$WIN_PKG_DIR/"
 
 cat << 'DOC_EOF' > "${WIN_PKG_DIR}/COMO_JOGAR.txt"
@@ -55,4 +55,13 @@ DOC_EOF
 echo "Criando arquivo compactado ${ZIP_FILE}..."
 (cd "$DIST_DIR" && zip -r "PokeRogue-Windows-x64.zip" "PokeRogue-Windows-x64")
 
+# Disponibiliza PokeRogue-Windows-x64.exe e SDL2.dll diretamente na raiz
+cp "${WIN_PKG_DIR}/jogoAED_gui.exe" "${PROJECT_ROOT}/PokeRogue-Windows-x64.exe"
+cp "windows-libs/SDL2.dll" "${PROJECT_ROOT}/SDL2.dll"
+
+rm -rf "$WIN_PKG_DIR"
+
 echo "=== Pacote Windows gerado com sucesso em: ${ZIP_FILE} ==="
+echo "=== Executável disponível na raiz: PokeRogue-Windows-x64.exe (com SDL2.dll) ==="
+
+

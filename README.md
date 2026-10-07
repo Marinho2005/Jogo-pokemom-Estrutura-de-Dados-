@@ -22,7 +22,6 @@ Acesse a página de lançamentos oficiais do projeto:
 Escolha o arquivo adequado para o seu computador:
 * **Para Windows:** `PokeRogue-Windows-x64.zip`
 * **Para Linux (qualquer distribuição):** `PokeRogue-Linux-x86_64.AppImage`
-* **Para Ubuntu / Linux Mint / Debian:** `pokerogue_1.0.0_amd64.deb` *(opcional)*
 
 ---
 
@@ -30,19 +29,18 @@ Escolha o arquivo adequado para o seu computador:
 
 ### 🪟 No Windows
 
-1. Baixe o arquivo `PokeRogue-Windows-x64.zip`.
-2. Clique com o botão direito no arquivo baixado e selecione **"Extrair Tudo..."**.
-3. Abra a pasta descompactada e dê **duplo clique** em:
+1. Dê duplo clique diretamente no executável na raiz:
    ```text
-   jogoAED_gui.exe
+   PokeRogue-Windows-x64.exe
    ```
-4. O jogo abrirá imediatamente!
+   *(Caso tenha baixado pela página de Releases, você também pode baixar e extrair o arquivo `PokeRogue-Windows-x64.zip`).*
+2. O jogo abrirá imediatamente!
 
-> **💡 Dica:** Você pode criar um atalho de `jogoAED_gui.exe` na sua Área de Trabalho para abrir mais rápido.
+> **💡 Dica:** Você pode criar um atalho de `PokeRogue-Windows-x64.exe` na sua Área de Trabalho para abrir mais rápido.
 
 ---
 
-### 🐧 No Linux (AppImage - Recomendado)
+### 🐧 No Linux (AppImage)
 
 O formato AppImage é portátil e funciona em praticamente qualquer sistema Linux (Ubuntu, Mint, Fedora, Debian, Manjaro, etc.):
 
@@ -54,14 +52,6 @@ O formato AppImage é portátil e funciona em praticamente qualquer sistema Linu
      chmod +x PokeRogue-Linux-x86_64.AppImage
      ```
 3. Dê **duplo clique** no arquivo baixado para jogar!
-
----
-
-### 🐧 No Linux (AppImage)
-
-1. Baixe o arquivo `PokeRogue-Linux-x86_64.AppImage`.
-2. Clique com o botão direito no arquivo e marque **Permitir execução como programa**.
-3. Dê dois cliques no AppImage para abrir o jogo.
 
 ---
 
@@ -98,6 +88,44 @@ Dentro do jogo, acesse a aba **CONFIGURAÇÕES** no menu inicial ou no Lobby. Vo
 
 ---
 
+## 🛠️ Compilação a partir do Código-Fonte (Desenvolvedores)
+
+Caso queira alterar o código em C e compilar o jogo manualmente:
+
+```bash
+# 1. Compilar e rodar a versão com interface gráfica no Linux:
+make -f scripts/Makefile run
+
+# 2. Apenas compilar o binário em dist/:
+make -f scripts/Makefile gui
+
+# 3. Gerar o pacote AppImage na raiz:
+make -f scripts/Makefile appimage
+
+# 4. Gerar o executável do Windows e pacote ZIP (requer MinGW):
+make -f scripts/Makefile win
+```
+
+---
+
+## 📁 Estrutura de Arquivos
+
+```text
+.
+├── PokeRogue-Linux-x86_64.AppImage  # Executável portátil para Linux
+├── PokeRogue-Windows-x64.exe        # Executável nativo para Windows
+├── SDL2.dll                         # Biblioteca dinâmica necessária no Windows
+├── ranking.txt                      # Hall da Fama e persistência de pontuação
+├── assets/                          # Imagens, ícones e visualizações
+├── dist/                            # Saída de compilação e arquivos de release
+├── include/                         # Cabeçalhos do jogo (.h)
+├── scripts/                         # Makefile e scripts de automação/build
+└── src/                             # Código-fonte do jogo em C (.c)
+```
+
+---
+
 ## 🏆 Sobre o Jogo
 
 O **PokeRogue - Edição Estruturas de Dados** é um jogo que combina o universo Pokémon com desafios táticos e estruturas de dados dinâmicas (filas circulares de ataques, pilhas de adversários e listas de Pokémons). Divirta-se tentando bater o recorde no Hall da Fama!
+

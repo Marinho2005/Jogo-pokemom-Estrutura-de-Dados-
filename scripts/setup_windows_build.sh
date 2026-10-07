@@ -32,20 +32,19 @@ if [ ! -d "windows-libs" ]; then
 
     cp -r /tmp/sdl_win/SDL2-${SDL_VER}/x86_64-w64-mingw32/include/SDL2 windows-libs/include/
     cp -r /tmp/sdl_win/SDL2-${SDL_VER}/x86_64-w64-mingw32/lib/* windows-libs/lib/
-    cp /tmp/sdl_win/SDL2-${SDL_VER}/x86_64-w64-mingw32/bin/SDL2.dll .
+    cp /tmp/sdl_win/SDL2-${SDL_VER}/x86_64-w64-mingw32/bin/SDL2.dll windows-libs/
 
     rm -rf /tmp/sdl_win
     echo "Bibliotecas do SDL2 Windows configuradas com sucesso em windows-libs/!"
 fi
 
 # 3. Compilar jogoAED_gui.exe
+mkdir -p dist
 echo "Compilando jogoAED_gui.exe para Windows (x86_64)..."
 x86_64-w64-mingw32-gcc -Wall -Wextra -Iinclude -Iwindows-libs/include/SDL2 \
     src/pokemon.c src/jogador.c src/loja.c src/ranking.c src/utils.c \
     src/gui_draw.c src/gui_audio.c src/savegame.c src/gui.c src/main_gui.c \
-    -Lwindows-libs/lib -lmingw32 -lSDL2main -lSDL2 -o jogoAED_gui.exe
+    -Lwindows-libs/lib -lmingw32 -lSDL2main -lSDL2 -o dist/jogoAED_gui.exe
 
 echo "=== Compilação concluída com sucesso! ==="
-echo "Executável: jogoAED_gui.exe gerado com sucesso."
-echo "Para rodar com Wine agora, digite:"
-echo "  wine ./jogoAED_gui.exe"
+echo "Executável: dist/jogoAED_gui.exe gerado com sucesso."

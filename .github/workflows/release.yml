@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: PokeRogue-Linux-AppImage
-          path: dist/PokeRogue-Linux-x86_64.AppImage
+          path: PokeRogue-Linux-x86_64.AppImage
           retention-days: 14
 
   publish-release:
@@ -76,13 +76,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: PokeRogue-Linux-AppImage
-          path: dist/
+          path: .
 
       - name: Criar Release no GitHub
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/PokeRogue-Windows-x64.zip
-            dist/PokeRogue-Linux-x86_64.AppImage
+            PokeRogue-Linux-x86_64.AppImage
           generate_release_notes: true
           title: "PokeRogue AED - Lançamento Oficial"

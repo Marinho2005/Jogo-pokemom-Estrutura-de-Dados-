@@ -7,12 +7,14 @@ cd "$PROJECT_ROOT"
 echo "=== Empacotando PokeRogue para Linux (x86_64) ==="
 
 DIST_DIR="dist"
+APPIMAGE_OUTPUT="${PROJECT_ROOT}/PokeRogue-Linux-x86_64.AppImage"
 mkdir -p "$DIST_DIR"
 
 # 1. Compila o binário Linux nativo
 echo "Compilando jogoAED_gui para Linux..."
-make clean
-make gui
+make -f scripts/Makefile clean
+make -f scripts/Makefile gui
+
 
 # 2. Prepara ícone se não existir
 if [ ! -f "assets/icon.png" ]; then
@@ -40,11 +42,11 @@ mkdir -p "$APPDIR/usr/share/applications"
 mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
 
 # Copia binário e dados
-cp jogoAED_gui "$APPDIR/usr/bin/"
+cp dist/jogoAED_gui "$APPDIR/usr/bin/"
 cp ranking.txt "$APPDIR/usr/share/pokerogue/"
 
 # Copia dependência libSDL2 para dentro do AppImage (para máxima portabilidade)
-SDL2_LIB=$(ldd ./jogoAED_gui | grep libSDL2 | awk '{print $3}')
+SDL2_LIB=$(ldd ./dist/jogoAED_gui | grep libSDL2 | awk '{print $3}')
 if [ -n "$SDL2_LIB" ] && [ -f "$SDL2_LIB" ]; then
     cp -L "$SDL2_LIB" "$APPDIR/usr/lib/libSDL2-2.0.so.0"
 fi
@@ -92,8 +94,8 @@ if [ ! -f "$APPIMAGETOOL" ]; then
 fi
 
 echo "Gerando AppImage portátil..."
-ARCH=x86_64 "$APPIMAGETOOL" --appimage-extract-and-run "$APPDIR" "${DIST_DIR}/PokeRogue-Linux-x86_64.AppImage"
-chmod +x "${DIST_DIR}/PokeRogue-Linux-x86_64.AppImage"
-echo "=== AppImage gerado com sucesso: ${DIST_DIR}/PokeRogue-Linux-x86_64.AppImage ==="
+ARCH=x86_64 "$APPIMAGETOOL" --appimage-extract-and-run "$APPDIR" "$APPIMAGE_OUTPUT"
+chmod +x "$APPIMAGE_OUTPUT"
+echo "=== AppImage gerado com sucesso: $APPIMAGE_OUTPUT ==="
 
 rm -rf "$APPDIR"
