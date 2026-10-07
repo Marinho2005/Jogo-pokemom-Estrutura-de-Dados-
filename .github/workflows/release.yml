@@ -36,7 +36,7 @@ jobs:
           retention-days: 14
 
   build-linux:
-    name: Compilar e Empacotar (Linux AppImage e .deb)
+    name: Compilar e Empacotar (Linux AppImage)
     runs-on: ubuntu-latest
     steps:
       - name: Baixar Código
@@ -45,9 +45,9 @@ jobs:
       - name: Instalar Dependências
         run: |
           sudo apt-get update
-          sudo apt-get install -y libsdl2-dev imagemagick curl dpkg
+          sudo apt-get install -y libsdl2-dev imagemagick curl
 
-      - name: Gerar Pacotes Linux (AppImage e .deb)
+      - name: Gerar Pacote Linux (AppImage)
         run: bash scripts/package_linux.sh
 
       - name: Salvar Artefato AppImage Linux
@@ -55,13 +55,6 @@ jobs:
         with:
           name: PokeRogue-Linux-AppImage
           path: dist/PokeRogue-Linux-x86_64.AppImage
-          retention-days: 14
-
-      - name: Salvar Artefato DEB Linux
-        uses: actions/upload-artifact@v4
-        with:
-          name: PokeRogue-Linux-DEB
-          path: dist/pokerogue_1.0.0_amd64.deb
           retention-days: 14
 
   publish-release:
@@ -85,18 +78,11 @@ jobs:
           name: PokeRogue-Linux-AppImage
           path: dist/
 
-      - name: Baixar Artefato DEB
-        uses: actions/download-artifact@v4
-        with:
-          name: PokeRogue-Linux-DEB
-          path: dist/
-
       - name: Criar Release no GitHub
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/PokeRogue-Windows-x64.zip
             dist/PokeRogue-Linux-x86_64.AppImage
-            dist/pokerogue_1.0.0_amd64.deb
           generate_release_notes: true
           title: "PokeRogue AED - Lançamento Oficial"

@@ -57,13 +57,11 @@ O formato AppImage é portátil e funciona em praticamente qualquer sistema Linu
 
 ---
 
-### 🐧 No Linux (Instalador .deb para Ubuntu e Linux Mint)
+### 🐧 No Linux (AppImage)
 
-Se você utiliza Ubuntu, Linux Mint ou Debian e prefere instalar o jogo no seu menu de aplicativos:
-
-1. Baixe o arquivo `pokerogue_1.0.0_amd64.deb`.
-2. Dê duplo clique nele para abrir com o instalador de programas do sistema e clique em **Instalar**.
-3. O jogo estará disponível no menu do seu computador com o ícone oficial do PokeRogue!
+1. Baixe o arquivo `PokeRogue-Linux-x86_64.AppImage`.
+2. Clique com o botão direito no arquivo e marque **Permitir execução como programa**.
+3. Dê dois cliques no AppImage para abrir o jogo.
 
 ---
 
@@ -93,8 +91,7 @@ Verifique se você concedeu a permissão de execução:
 
 ### 3. Onde ficam salvos meu progresso e meus recordes?
 * **No Windows:** Na mesma pasta onde você extraiu o jogo (`savegame.dat` e `ranking.txt`).
-* **No Linux (AppImage):** Na pasta onde você executa o jogo.
-* **No Linux (.deb):** Salvo com segurança na pasta do seu usuário em `~/.local/share/pokerogue/`.
+* **No Linux (AppImage):** Na pasta onde você mantém o AppImage.
 
 ### 4. Como ajustar o som ou colocar em tela cheia?
 Dentro do jogo, acesse a aba **CONFIGURAÇÕES** no menu inicial ou no Lobby. Você pode ajustar o volume do som de 0% a 100%, ativar o modo mudo e alternar para tela cheia com um clique.
