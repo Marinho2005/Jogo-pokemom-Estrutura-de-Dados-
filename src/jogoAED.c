@@ -227,10 +227,7 @@ int main(void) {
         } else if (opcaoLobby == 'S') {
             char confirma = lerCaractereOpcao("SN", "Tem certeza que deseja sair do jogo? (S/N): ");
             if (confirma == 'S') {
-                printf("\nSalvando progresso e saindo...\n");
-                if (player.pontuacao > 0) {
-                    salvarRanking(player.nome, player.pontuacao);
-                }
+                printf("\nSaindo...\n");
                 printf("Obrigado por jogar, %s! Ate a proxima.\n", player.nome);
                 break;
             }

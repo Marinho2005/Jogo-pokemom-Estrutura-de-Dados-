@@ -8,6 +8,7 @@ typedef struct {
     int pontuacao;
 } Registro;
 
+int carregarRanking(Registro registros[], int max_registros);
 void salvarRanking(const char *nomeJogador, int pontuacao);
 void exibirRanking(void);
 int comparaRanking(const void *n1, const void *n2);

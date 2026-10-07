@@ -122,6 +122,8 @@ static void finalize_team_selection(GuiApp *app) {
 
 static void start_battle(GuiApp *app) {
     if (listaVazia(app->player.pokemonslista)) {
+        salvarRanking(app->player.nome, app->player.pontuacao);
+        savegame_delete();
         app->current_scene = SCENE_GAME_OVER;
         return;
     }
@@ -189,23 +191,23 @@ static void render_scene_title(GuiApp *app) {
     ui_clear(&app->ui, C_BG_DARK);
 
     /* Pokebola decorativa gigante */
-    ui_draw_pokeball(&app->ui, WINDOW_WIDTH / 2, 135, 55);
+    ui_draw_pokeball(&app->ui, WINDOW_WIDTH / 2, 115, 48);
 
     /* Banner de Título */
-    ui_draw_text_centered(&app->ui, "POKEROGUE", WINDOW_WIDTH / 2, 205, 4, C_YELLOW);
-    ui_draw_text_centered(&app->ui, "ESTRUTURA DE DADOS (AED)", WINDOW_WIDTH / 2, 275, 2, C_WHITE);
-    ui_draw_text_centered(&app->ui, "Fila circular * Pilha dinamica * Listas encadeadas", WINDOW_WIDTH / 2, 315, 1, C_GRAY);
+    ui_draw_text_centered(&app->ui, "POKEROGUE", WINDOW_WIDTH / 2, 180, 4, C_YELLOW);
+    ui_draw_text_centered(&app->ui, "ESTRUTURA DE DADOS (AED)", WINDOW_WIDTH / 2, 245, 2, C_WHITE);
+    ui_draw_text_centered(&app->ui, "Fila circular * Pilha dinamica * Listas encadeadas", WINDOW_WIDTH / 2, 280, 1, C_GRAY);
 
     /* Notificação de jogo salvo */
     if (app->title_notification[0] != '\0') {
-        ui_draw_text_centered(&app->ui, app->title_notification, WINDOW_WIDTH / 2, 345, 1, C_GREEN);
+        ui_draw_text_centered(&app->ui, app->title_notification, WINDOW_WIDTH / 2, 308, 1, C_GREEN);
     }
 
     int has_save = savegame_exists();
 
     if (has_save) {
         /* Opção 1: Continuar Aventura */
-        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 375, 300, 48, "CONTINUAR AVENTURA", 2,
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 335, 300, 42, "CONTINUAR AVENTURA", 2,
                            C_GREEN, C_BTN_HOVER, C_WHITE) ||
             (app->ui.key_pressed == SDLK_SPACE || app->ui.key_pressed == SDLK_RETURN)) {
             if (savegame_load(app)) {
@@ -216,13 +218,21 @@ static void render_scene_title(GuiApp *app) {
         }
 
         /* Opção 2: Nova Aventura */
-        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 432, 300, 44, "NOVA AVENTURA", 2,
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 385, 300, 42, "NOVA AVENTURA", 2,
                            C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
             audio_play(SOUND_SELECT);
             app->show_confirm_overwrite = 1;
         }
 
-        /* Opção 3: Configurações */
+        /* Opção 3: Ranking */
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 435, 300, 42, "RANKING", 2,
+                           C_GOLD, C_BTN_HOVER, C_WHITE)) {
+            audio_play(SOUND_SELECT);
+            app->previous_scene = SCENE_TITLE;
+            app->current_scene = SCENE_RANKING;
+        }
+
+        /* Opção 4: Configurações */
         if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 485, 300, 42, "CONFIGURACOES", 2,
                            C_DARK_GRAY, C_BTN_HOVER, C_WHITE)) {
             audio_play(SOUND_SELECT);
@@ -231,7 +241,7 @@ static void render_scene_title(GuiApp *app) {
         }
     } else {
         /* Sem save anterior: Iniciar Aventura */
-        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 140, 400, 280, 50, "INICIAR AVENTURA", 2,
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 350, 300, 46, "INICIAR AVENTURA", 2,
                            C_GREEN, C_BTN_HOVER, C_WHITE) ||
             (app->ui.key_pressed == SDLK_SPACE || app->ui.key_pressed == SDLK_RETURN)) {
             audio_play(SOUND_SELECT);
@@ -239,16 +249,24 @@ static void render_scene_title(GuiApp *app) {
             app->current_scene = SCENE_NAME_INPUT;
         }
 
+        /* Ranking */
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 406, 300, 46, "RANKING", 2,
+                           C_GOLD, C_BTN_HOVER, C_WHITE)) {
+            audio_play(SOUND_SELECT);
+            app->previous_scene = SCENE_TITLE;
+            app->current_scene = SCENE_RANKING;
+        }
+
         /* Configurações */
-        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 140, 465, 280, 45, "CONFIGURACOES", 2,
-                           C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
+        if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 462, 300, 46, "CONFIGURACOES", 2,
+                           C_DARK_GRAY, C_BTN_HOVER, C_WHITE)) {
             audio_play(SOUND_SELECT);
             app->previous_scene = SCENE_TITLE;
             app->current_scene = SCENE_SETTINGS;
         }
     }
 
-    ui_draw_text_centered(&app->ui, "[F11] Tela Cheia  |  Arraste as bordas para redimensionar", WINDOW_WIDTH / 2, 560, 1, C_DARK_GRAY);
+    ui_draw_text_centered(&app->ui, "[F11] Tela Cheia  |  Arraste as bordas para redimensionar", WINDOW_WIDTH / 2, 555, 1, C_DARK_GRAY);
 
     /* Modal de confirmação caso tente sobrescrever um save existente */
     if (app->show_confirm_overwrite) {
@@ -533,6 +551,7 @@ static void render_scene_lobby(GuiApp *app) {
 
     if (ui_draw_button(&app->ui, 384, 550, 172, 60, "RANKING", 2, C_GOLD, C_BTN_HOVER, C_WHITE)) {
         audio_play(SOUND_SELECT);
+        app->previous_scene = SCENE_LOBBY;
         app->current_scene = SCENE_RANKING;
     }
 
@@ -545,9 +564,6 @@ static void render_scene_lobby(GuiApp *app) {
     if (ui_draw_button(&app->ui, 748, 550, 192, 60, "SALVAR E SAIR", 2, C_DARK_GRAY, C_BTN_HOVER, C_WHITE)) {
         audio_play(SOUND_BUY);
         savegame_save(app);
-        if (app->player.pontuacao > 0) {
-            salvarRanking(app->player.nome, app->player.pontuacao);
-        }
         strncpy(app->title_notification, "Progresso salvo com sucesso!", sizeof(app->title_notification) - 1);
         app->title_notification[sizeof(app->title_notification) - 1] = '\0';
         app->current_scene = SCENE_TITLE;
@@ -632,6 +648,7 @@ static void render_scene_battle(GuiApp *app) {
                         remove_listase(&app->player.pokemonslista, *app->active_pokemon);
                         if (listaVazia(app->player.pokemonslista)) {
                             salvarRanking(app->player.nome, app->player.pontuacao);
+                            savegame_delete();
                             app->current_scene = SCENE_GAME_OVER;
                         } else {
                             app->battle_phase = BATTLE_PHASE_DEFEAT_POKE;
@@ -701,6 +718,7 @@ static void render_scene_battle(GuiApp *app) {
 
                         if (listaVazia(app->player.pokemonslista)) {
                             salvarRanking(app->player.nome, app->player.pontuacao);
+                            savegame_delete();
                             app->current_scene = SCENE_GAME_OVER;
                         } else {
                             app->battle_phase = BATTLE_PHASE_DEFEAT_POKE;
@@ -888,20 +906,11 @@ static void render_scene_ranking(GuiApp *app) {
     ui_draw_panel(&app->ui, 100, 40, WINDOW_WIDTH - 200, 540, C_PANEL_BG, C_PANEL_BORDER);
     ui_draw_text_centered(&app->ui, "HALL DA FAMA - RANKING", WINDOW_WIDTH / 2, 60, 3, C_GOLD);
 
-    /* Leitura do arquivo ranking.txt */
+    /* Leitura do arquivo ranking.txt sem duplicatas e ordenado */
     Registro registros[100];
-    int count = 0;
-    FILE *file = fopen("ranking.txt", "r");
-    if (file) {
-        while (count < 100 && fscanf(file, "%19s %d", registros[count].nome, &registros[count].pontuacao) == 2) {
-            count++;
-        }
-        fclose(file);
-    }
+    int count = carregarRanking(registros, 100);
 
     if (count > 0) {
-        qsort(registros, count, sizeof(Registro), comparaRanking);
-
         int max_show = count < 8 ? count : 8;
         for (int i = 0; i < max_show; i++) {
             int ry = 130 + i * 45;
@@ -924,10 +933,14 @@ static void render_scene_ranking(GuiApp *app) {
         ui_draw_text_centered(&app->ui, "Nenhum recorde registrado ainda.", WINDOW_WIDTH / 2, 260, 2, C_GRAY);
     }
 
-    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 120, 510, 240, 45, "VOLTAR AO LOBBY", 2,
-                       C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
+    const char *back_lbl = (app->previous_scene == SCENE_TITLE) ? "VOLTAR AO MENU" :
+                           ((app->previous_scene == SCENE_GAME_OVER) ? "VOLTAR" : "VOLTAR AO LOBBY");
+    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 130, 510, 260, 45, back_lbl, 2,
+                       C_BTN_NORMAL, C_BTN_HOVER, C_WHITE) ||
+        app->ui.key_pressed == SDLK_ESCAPE) {
         audio_play(SOUND_SELECT);
-        app->current_scene = SCENE_LOBBY;
+        app->current_scene = (app->previous_scene != SCENE_RANKING && app->previous_scene != 0)
+                             ? app->previous_scene : SCENE_TITLE;
     }
 }
 
@@ -1025,17 +1038,18 @@ static void render_scene_settings(GuiApp *app) {
 static void render_scene_game_over(GuiApp *app) {
     ui_clear(&app->ui, C_BG_DARK);
 
-    ui_draw_panel(&app->ui, WINDOW_WIDTH / 2 - 250, 120, 500, 400, C_PANEL_BG, C_PANEL_BORDER);
+    ui_draw_panel(&app->ui, WINDOW_WIDTH / 2 - 250, 95, 500, 450, C_PANEL_BG, C_PANEL_BORDER);
 
-    ui_draw_text_centered(&app->ui, "FIM DE JOGO!", WINDOW_WIDTH / 2, 160, 4, C_RED);
-    ui_draw_text_centered(&app->ui, "Todos os seus Pokemons foram derrotados.", WINDOW_WIDTH / 2, 230, 1, C_BLACK);
+    ui_draw_text_centered(&app->ui, "FIM DE JOGO!", WINDOW_WIDTH / 2, 135, 4, C_RED);
+    ui_draw_text_centered(&app->ui, "Todos os seus Pokemons foram derrotados.", WINDOW_WIDTH / 2, 190, 1, C_BLACK);
 
     char score_text[64];
     snprintf(score_text, sizeof(score_text), "Pontuacao Final: %d ponto(s)", app->pontuacao);
-    ui_draw_text_centered(&app->ui, score_text, WINDOW_WIDTH / 2, 270, 2, C_BLUE);
+    ui_draw_text_centered(&app->ui, score_text, WINDOW_WIDTH / 2, 225, 2, C_BLUE);
 
-    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 330, 300, 50, "JOGAR NOVAMENTE", 2,
+    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 270, 300, 44, "JOGAR NOVAMENTE", 2,
                        C_GREEN, C_BTN_HOVER, C_WHITE)) {
+        audio_play(SOUND_SELECT);
         /* Reinicia o jogo */
         destroi_listase(&app->player.pokemonslista);
         destroi_listase(&app->mortos);
@@ -1047,12 +1061,29 @@ static void render_scene_game_over(GuiApp *app) {
         app->current_scene = SCENE_SELECT_TEAM;
     }
 
-    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 400, 300, 45, "VER RANKING", 1,
+    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 325, 300, 44, "VER RANKING", 2,
                        C_GOLD, C_BTN_HOVER, C_WHITE)) {
+        audio_play(SOUND_SELECT);
+        app->previous_scene = SCENE_GAME_OVER;
         app->current_scene = SCENE_RANKING;
     }
 
-    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 460, 300, 40, "SAIR DO JOGO", 1,
+    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 380, 300, 44, "VOLTAR AO MENU", 2,
+                       C_BTN_NORMAL, C_BTN_HOVER, C_WHITE)) {
+        audio_play(SOUND_SELECT);
+        /* Reinicia estado para o menu principal */
+        destroi_listase(&app->player.pokemonslista);
+        destroi_listase(&app->mortos);
+        destroiListaLoja(&app->loja);
+        destroiPilha(&app->pilhapok);
+
+        init_game_pokemons(app);
+        app->num_selected = 0;
+        app->title_notification[0] = '\0';
+        app->current_scene = SCENE_TITLE;
+    }
+
+    if (ui_draw_button(&app->ui, WINDOW_WIDTH / 2 - 150, 435, 300, 44, "SAIR DO JOGO", 2,
                        C_DARK_GRAY, C_BTN_HOVER, C_WHITE)) {
         app->running = 0;
     }
@@ -1070,9 +1101,6 @@ void gui_app_run(GuiApp *app) {
 
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
-                if (app->player.pontuacao > 0) {
-                    salvarRanking(app->player.nome, app->player.pontuacao);
-                }
                 app->running = 0;
             } else if (e.type == SDL_MOUSEMOTION) {
                 app->ui.mouse_x = e.motion.x;
