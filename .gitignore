@@ -25,3 +25,10 @@ dist/
 *.AppImage
 *.deb
 *.zip
+
+# Exceções para disponibilizar os executáveis portáteis na raiz
+!PokeRogue-Linux-x86_64.AppImage
+!PokeRogue-Windows-x64.exe
+!SDL2.dll
+!ranking.txt
+
