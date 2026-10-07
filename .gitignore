@@ -19,3 +19,9 @@ savegame.dat
 .wine/
 windows-libs/
 SDL2.dll
+
+# Pacotes de distribuição
+dist/
+*.AppImage
+*.deb
+*.zip
