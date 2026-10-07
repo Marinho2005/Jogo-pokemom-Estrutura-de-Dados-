@@ -14,44 +14,38 @@ Um jogo de batalha e captura de Pokémon estilo *roguelike* com gráficos em pix
 
 ---
 
-## 📥 Como Baixar
+## 📥 Como Baixar e Jogar
 
-Acesse a página de lançamentos oficiais do projeto:
-👉 **[Clique aqui para ir para a página de Downloads (Releases)](https://github.com/Marinho2005/Jogo-pokemom-Estrutura-de-Dados-/releases)**
+Os executáveis pré-compilados já estão disponíveis **diretamente na raiz deste repositório**! Basta clonar o repositório ou baixar o arquivo correspondente ao seu sistema operacional:
 
-Escolha o arquivo adequado para o seu computador:
-* **Para Windows:** `PokeRogue-Windows-x64.zip`
-* **Para Linux (qualquer distribuição):** `PokeRogue-Linux-x86_64.AppImage`
+### 🪟 No Windows (Execução Direta)
 
----
-
-## 🎮 Como Jogar
-
-### 🪟 No Windows
-
-1. Dê duplo clique diretamente no executável na raiz:
-   ```text
-   PokeRogue-Windows-x64.exe
-   ```
-   *(Caso tenha baixado pela página de Releases, você também pode baixar e extrair o arquivo `PokeRogue-Windows-x64.zip`).*
-2. O jogo abrirá imediatamente!
+1. Os arquivos necessários já estão juntos na raiz do projeto:
+   * `PokeRogue-Windows-x64.exe`
+   * `SDL2.dll`
+2. Dê **duplo clique** em **`PokeRogue-Windows-x64.exe`** para jogar imediatamente!
 
 > **💡 Dica:** Você pode criar um atalho de `PokeRogue-Windows-x64.exe` na sua Área de Trabalho para abrir mais rápido.
 
 ---
 
-### 🐧 No Linux (AppImage)
+### 🐧 No Linux (AppImage Portátil)
 
-O formato AppImage é portátil e funciona em praticamente qualquer sistema Linux (Ubuntu, Mint, Fedora, Debian, Manjaro, etc.):
+O formato AppImage é portátil e funciona em praticamente qualquer sistema Linux (Ubuntu, Mint, Fedora, Debian, Manjaro, Arch, etc.):
 
-1. Baixe o arquivo `PokeRogue-Linux-x86_64.AppImage`.
-2. Dê permissão de execução ao arquivo:
+1. Localize o executável na raiz:
+   * `PokeRogue-Linux-x86_64.AppImage`
+2. Certifique-se de que o arquivo possui permissão de execução:
    * **Pela interface gráfica:** Clique com o botão direito no arquivo > **Propriedades** > aba **Permissões** > marque a opção **"Permitir execução do arquivo como programa"**.
    * **Ou pelo terminal (se preferir):**
      ```bash
      chmod +x PokeRogue-Linux-x86_64.AppImage
      ```
-3. Dê **duplo clique** no arquivo baixado para jogar!
+3. Dê **duplo clique** no AppImage para abrir o jogo!
+
+---
+
+> 📦 **Downloads Compactados:** Se preferir baixar o pacote ZIP já fechado para Windows, acesse a página de **[Releases](https://github.com/Marinho2005/Jogo-pokemom-Estrutura-de-Dados-/releases)**.
 
 ---
 
